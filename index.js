@@ -50,11 +50,10 @@ function mapAuth0UserToSalesforceUsername(oidcUser) {
 let sfAccessTokenCache = {}; // simple per-username cache in memory
 
 function getPrivateKey() {
-  const keyPath = process.env.JWT_PRIVATE_KEY_PATH;
-  if (!keyPath) {
-    throw new Error('JWT_PRIVATE_KEY_PATH is not set in .env');
-  }
-  return fs.readFileSync(keyPath, 'utf8');
+  const keyPath = process.env.JWT_PRIVATE_KEY_PATH || './jwt/server.key';
+  const fullPath = path.resolve(keyPath);
+  console.log('Reading private key from:', fullPath);
+  return fs.readFileSync(fullPath, 'utf8');
 }
 
 async function loginToSalesforceAsUser(sfUsername) {
