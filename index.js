@@ -1,10 +1,6 @@
 // index.js
 require('dotenv').config();
-console.log('🔍 JWT env debug:', {
-  hasJwtPrivateKey: !!process.env.JWT_PRIVATE_KEY,
-  jwtPrivateKeyLength: process.env.JWT_PRIVATE_KEY ? process.env.JWT_PRIVATE_KEY.length : 0,
-  jwtPrivateKeyPath: process.env.JWT_PRIVATE_KEY_PATH || null
-});
+
 
 
 const express = require('express');
@@ -14,6 +10,12 @@ const fs = require('fs');
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
 const { auth } = require('express-openid-connect');
+
+console.log('🔍 JWT env debug:', {
+  hasJwtPrivateKey: !!process.env.JWT_PRIVATE_KEY,
+  jwtPrivateKeyLength: process.env.JWT_PRIVATE_KEY ? process.env.JWT_PRIVATE_KEY.length : 0,
+  jwtPrivateKeyPath: process.env.JWT_PRIVATE_KEY_PATH || null
+});
 
 // Configuration validation
 if (
