@@ -1,0 +1,241 @@
+// index.js
+require('dotenv').config();
+
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+const fs = require('fs');
+const axios = require('axios');
+const jwt = require('jsonwebtoken');
+const { auth } = require('express-openid-connect');
+
+// Configuration validation
+if (
+  !process.env.OIDC_CLIENT_ID ||
+  process.env.OIDC_CLIENT_ID === 'your-auth0-client-id' ||
+  !process.env.OIDC_CLIENT_SECRET ||
+  process.env.OIDC_CLIENT_SECRET === 'your-auth0-client-secret' ||
+  !process.env.OIDC_ISSUER_BASE_URL ||
+  process.env.OIDC_ISSUER_BASE_URL === 'https://your-auth0-domain.auth0.com'
+) {
+  console.warn(
+    '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n' +
+    'WARNING: Auth0 OIDC is not fully configured in your .env file. \n' +
+    'Authentication will not work correctly.\n' +
+    'Please fill in your Auth0 details in the .env file.\n' +
+    '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+  );
+}
+
+
+const app = express();
+
+// --------------------------------------
+// Simple mapping from Auth0 user -> Salesforce username
+// --------------------------------------
+function mapAuth0UserToSalesforceUsername(oidcUser) {
+  if (!oidcUser?.email) return null;
+
+  // For now, we hard-code Edna.
+  if (oidcUser.email === 'itsamar12@gmail.com') {
+    return 'edna.frank@aloha.com';
+  }
+
+  // Later you can extend this to multiple users or a lookup table.
+  return null;
+}
+
+// --------------------------------------
+// Salesforce JWT login helper
+// --------------------------------------
+let sfAccessTokenCache = {}; // simple per-username cache in memory
+
+function getPrivateKey() {
+  const keyPath = process.env.JWT_PRIVATE_KEY_PATH;
+  if (!keyPath) {
+    throw new Error('JWT_PRIVATE_KEY_PATH is not set in .env');
+  }
+  return fs.readFileSync(keyPath, 'utf8');
+}
+
+async function loginToSalesforceAsUser(sfUsername) {
+  if (!sfUsername) {
+    throw new Error('Salesforce username is required for JWT login');
+  }
+
+  // Optional in-memory cache
+  const cached = sfAccessTokenCache[sfUsername];
+  if (cached) {
+    return cached;
+  }
+
+  console.log(`🔑 Attempting JWT login for: ${sfUsername}`);
+  console.log(`🏢 Login URL: ${process.env.SF_LOGIN_URL}`);
+  console.log(`📱 Client ID: ${process.env.SF_CLIENT_ID}`);
+  
+  const privateKey = getPrivateKey();
+
+  const token = jwt.sign(
+    {
+      iss: process.env.SF_CLIENT_ID,
+      sub: sfUsername,
+      aud: process.env.SF_LOGIN_URL,
+      exp: Math.floor(Date.now() / 1000) + 180 // 3 minutes
+    },
+    privateKey,
+    { algorithm: 'RS256' }
+  );
+
+  try {
+    const response = await axios.post(
+      `${process.env.SF_LOGIN_URL}/services/oauth2/token`,
+      new URLSearchParams({
+        grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+        assertion: token
+      }),
+      {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      }
+    );
+
+    const { access_token: accessToken, instance_url: instanceUrl } = response.data;
+
+    console.log(`🔐 Logged into Salesforce via JWT as ${sfUsername}`);
+
+    const session = { accessToken, instanceUrl };
+    sfAccessTokenCache[sfUsername] = session;
+    return session;
+  } catch (error) {
+    console.error(`❌ JWT login failed for ${sfUsername}:`, error.response?.data || error.message);
+    throw error;
+  }
+}
+
+// ----------------------------- 
+// 1. OIDC / Auth0 configuration
+// ----------------------------- 
+const oidcConfig = {
+  authRequired: false, // don't force login on every route
+  auth0Logout: true,
+  secret: process.env.OIDC_CLIENT_SECRET,
+  baseURL: process.env.OIDC_APP_BASE_URL,
+  clientID: process.env.OIDC_CLIENT_ID,
+  issuerBaseURL: process.env.OIDC_ISSUER_BASE_URL
+};
+
+// ----------------------------- 
+// 2. Middleware
+// ----------------------------- 
+app.use(cors());
+app.use(express.json());
+
+// Attach Auth0 / OIDC to the app
+app.use(auth(oidcConfig));
+
+// Serve static files (our frontend) from /public
+app.use(express.static(path.join(__dirname, 'public')));
+
+// ----------------------------- 
+// 3. Auth-related routes
+// ----------------------------- 
+
+// Check who is logged in (via Auth0)
+app.get('/profile', (req, res) => {
+  if (!req.oidc.isAuthenticated()) {
+    return res.status(401).json({ loggedIn: false });
+  }
+
+  res.json({
+    loggedIn: true,
+    user: req.oidc.user
+  });
+});
+
+// Trigger login (redirects to Auth0)
+app.get('/login', (req, res) => {
+  res.oidc.login();
+});
+
+// Trigger logout (clears session + Auth0 logout)
+app.get('/logout', (req, res) => {
+  res.oidc.logout();
+});
+
+// ----------------------------- 
+// 4. API routes (backend utilities)
+// ----------------------------- 
+
+// Simple health check
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    message: 'Backend is running',
+    time: new Date().toISOString()
+  });
+});
+
+// Placeholder "hello" endpoint
+app.get('/api/hello', (req, res) => {
+  const isAuthenticated = req.oidc?.isAuthenticated();
+  res.json({
+    message: 'Hello from Node backend. Soon this will call Salesforce UI API',
+    auth: isAuthenticated
+      ? {
+          loggedIn: true,
+          sub: req.oidc.user.sub,
+          email: req.oidc.user.email
+        }
+      : { loggedIn: false }
+  });
+});
+
+// ----------------------------- 
+// 5. Salesforce test route – UI API org-info as Edna
+// ----------------------------- 
+app.get('/api/sf/org-info', async (req, res) => {
+  try {
+    if (!req.oidc.isAuthenticated()) {
+      return res.status(401).json({ error: 'Not logged in via IdP' });
+    }
+
+    const sfUsername = mapAuth0UserToSalesforceUsername(req.oidc.user);
+    if (!sfUsername) {
+      return res.status(403).json({
+        error: 'No Salesforce mapping for this IdP user',
+        idpUser: req.oidc.user
+      });
+    }
+
+    const { accessToken, instanceUrl } = await loginToSalesforceAsUser(sfUsername);
+
+    // 🔹 Call a core REST endpoint instead of UI API
+    const url = `${instanceUrl}/services/data/v${process.env.SF_API_VERSION}/sobjects`;
+    console.log('Calling Salesforce:', url);
+
+    const result = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
+
+    res.json({
+      asSalesforceUser: sfUsername,
+      limits: result.data
+    });
+  } catch (error) {
+    console.error('❌ /api/sf/org-info error:', error.response?.data || error.message);
+    res.status(500).json({
+      error: 'Failed to call Salesforce API',
+      detail: error.response?.data || error.message
+    });
+  }
+});
+
+// ----------------------------- 
+// 6. Start server
+// ----------------------------- 
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`✅ Server listening on http://localhost:${PORT}`);
+});
