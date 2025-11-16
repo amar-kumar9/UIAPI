@@ -50,13 +50,13 @@ function mapAuth0UserToSalesforceUsername(oidcUser) {
 let sfAccessTokenCache = {}; // simple per-username cache in memory
 
 function getPrivateKey() {
-  // Prefer env var with raw key (easier than files on Render)
+  // 1️⃣ Prefer env var with raw key
   if (process.env.JWT_PRIVATE_KEY) {
     console.log('🔑 Using JWT private key from environment variable JWT_PRIVATE_KEY');
-    // Handle \n in env var
     return process.env.JWT_PRIVATE_KEY.replace(/\\n/g, '\n');
   }
 
+  // 2️⃣ Fallback to file if env var is not set
   const keyPath = process.env.JWT_PRIVATE_KEY_PATH || './jwt/server.key';
   const fullPath = path.resolve(keyPath);
   console.log('🔑 Reading private key from:', fullPath);
