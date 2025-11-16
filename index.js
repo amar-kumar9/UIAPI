@@ -27,7 +27,6 @@ if (
   );
 }
 
-
 const app = express();
 
 // --------------------------------------
@@ -117,11 +116,29 @@ async function loginToSalesforceAsUser(sfUsername) {
 const oidcConfig = {
   authRequired: false, // don't force login on every route
   auth0Logout: true,
-  secret: process.env.OIDC_CLIENT_SECRET,
-  baseURL: process.env.OIDC_APP_BASE_URL,
+
+  // Use a proper session/cookie secret; prefer SESSION_SECRET but fall back to client secret if needed
+  secret: process.env.SESSION_SECRET || process.env.OIDC_CLIENT_SECRET,
+
+  // WHERE THIS APP LIVES
+  // Prefer BASE_URL (set in Render), then any existing OIDC_APP_BASE_URL, then Render's own external URL
+  baseURL: process.env.BASE_URL || process.env.OIDC_APP_BASE_URL || process.env.RENDER_EXTERNAL_URL,
+
   clientID: process.env.OIDC_CLIENT_ID,
   issuerBaseURL: process.env.OIDC_ISSUER_BASE_URL
 };
+
+// Log what the app *actually* sees at startup
+console.log('🔧 OIDC config at startup:', {
+  baseURL: oidcConfig.baseURL,
+  issuerBaseURL: oidcConfig.issuerBaseURL,
+  clientID: oidcConfig.clientID,
+  hasSecret: !!oidcConfig.secret
+});
+
+if (!oidcConfig.baseURL) {
+  console.warn('⚠️ OIDC baseURL is missing. Set BASE_URL or OIDC_APP_BASE_URL (or rely on RENDER_EXTERNAL_URL) in your environment.');
+}
 
 // ----------------------------- 
 // 2. Middleware
