@@ -1,5 +1,11 @@
 // index.js
 require('dotenv').config();
+console.log('🔍 JWT env debug:', {
+  hasJwtPrivateKey: !!process.env.JWT_PRIVATE_KEY,
+  jwtPrivateKeyLength: process.env.JWT_PRIVATE_KEY ? process.env.JWT_PRIVATE_KEY.length : 0,
+  jwtPrivateKeyPath: process.env.JWT_PRIVATE_KEY_PATH || null
+});
+
 
 const express = require('express');
 const cors = require('cors');
