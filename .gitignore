@@ -1,6 +1,5 @@
 node_modules/
 .env
-jwt/
-*.key
-*.pem
+jwt/*.key
+jwt/*.pem
 .DS_Store
