@@ -1,12 +1,12 @@
 {
   "name": "uiapi",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "src/app.js",
   "engines": {
     "node": ">=18.x"
   },
   "scripts": {
-    "start": "node index.js"
+    "start": "node src/app.js"
   },
   "keywords": [],
   "author": "",
