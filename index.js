@@ -50,11 +50,25 @@ function mapAuth0UserToSalesforceUsername(oidcUser) {
 let sfAccessTokenCache = {}; // simple per-username cache in memory
 
 function getPrivateKey() {
+  // Prefer env var with raw key (easier than files on Render)
+  if (process.env.JWT_PRIVATE_KEY) {
+    console.log('🔑 Using JWT private key from environment variable JWT_PRIVATE_KEY');
+    // Handle \n in env var
+    return process.env.JWT_PRIVATE_KEY.replace(/\\n/g, '\n');
+  }
+
   const keyPath = process.env.JWT_PRIVATE_KEY_PATH || './jwt/server.key';
   const fullPath = path.resolve(keyPath);
-  console.log('Reading private key from:', fullPath);
+  console.log('🔑 Reading private key from:', fullPath);
+
+  if (!fs.existsSync(fullPath)) {
+    console.error('❌ JWT private key file does NOT exist at:', fullPath);
+    throw new Error(`JWT private key not found at ${fullPath}`);
+  }
+
   return fs.readFileSync(fullPath, 'utf8');
 }
+
 
 async function loginToSalesforceAsUser(sfUsername) {
   if (!sfUsername) {
