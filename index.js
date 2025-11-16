@@ -58,23 +58,18 @@ function mapAuth0UserToSalesforceUsername(oidcUser) {
 let sfAccessTokenCache = {}; // simple per-username cache in memory
 
 function getPrivateKey() {
-  // 1️⃣ Prefer env var with raw key
-  if (process.env.JWT_PRIVATE_KEY) {
-    console.log('🔑 Using JWT private key from environment variable JWT_PRIVATE_KEY');
-    return process.env.JWT_PRIVATE_KEY.replace(/\\n/g, '\n');
+  if (!process.env.JWT_PRIVATE_KEY) {
+    console.error('❌ JWT_PRIVATE_KEY env var is missing or empty');
+    throw new Error('JWT_PRIVATE_KEY env var is required but not set');
   }
 
-  // 2️⃣ Fallback to file if env var is not set
-  const keyPath = process.env.JWT_PRIVATE_KEY_PATH || './jwt/server.key';
-  const fullPath = path.resolve(keyPath);
-  console.log('🔑 Reading private key from:', fullPath);
+  console.log(
+    '🔑 Using JWT private key from environment variable JWT_PRIVATE_KEY, length:',
+    process.env.JWT_PRIVATE_KEY.length
+  );
 
-  if (!fs.existsSync(fullPath)) {
-    console.error('❌ JWT private key file does NOT exist at:', fullPath);
-    throw new Error(`JWT private key not found at ${fullPath}`);
-  }
-
-  return fs.readFileSync(fullPath, 'utf8');
+  // Support "\n" in env var
+  return process.env.JWT_PRIVATE_KEY.replace(/\\n/g, '\n');
 }
 
 
