@@ -71,22 +71,24 @@ router.get('/articles', async (req, res) => {
     }
 
     const q = req.query.q;
-    if (!q || q.length < 3) {
-      return res.json({ articles: [] });
+    const session = await getSalesforceSession(sfUsername);
+    let articles = [];
+
+    if (q && q.length >= 2) {
+      // SOSL Search for specific query
+      const sosl = `FIND {${q}*} IN ALL FIELDS RETURNING Knowledge__kav (Id, Title, Summary, UrlName, ArticleNumber WHERE PublishStatus='Online' AND Language='en_US') LIMIT 10`;
+      const url = `${session.instanceUrl}/services/data/v${process.env.SF_API_VERSION}/search/?q=${encodeURIComponent(sosl)}`;
+      const response = await axios.get(url, { headers: { Authorization: `Bearer ${session.accessToken}` } });
+      articles = response.data.searchRecords || [];
+    } else {
+      // SOQL Query for all/recent articles (Default view)
+      const soql = `SELECT Id, Title, Summary, UrlName, ArticleNumber FROM Knowledge__kav WHERE PublishStatus='Online' AND Language='en_US' ORDER BY LastPublishedDate DESC LIMIT 20`;
+      const url = `${session.instanceUrl}/services/data/v${process.env.SF_API_VERSION}/query/?q=${encodeURIComponent(soql)}`;
+      const response = await axios.get(url, { headers: { Authorization: `Bearer ${session.accessToken}` } });
+      articles = response.data.records || [];
     }
 
-    const session = await getSalesforceSession(sfUsername);
-    
-    // SOSL Search
-    const sosl = `FIND {${q}} IN ALL FIELDS RETURNING KnowledgeArticleVersion (Id, Title, Summary, UrlName, ArticleNumber WHERE PublishStatus='Online' AND Language='en_US') LIMIT 5`;
-    
-    const url = `${session.instanceUrl}/services/data/v${process.env.SF_API_VERSION}/search/?q=${encodeURIComponent(sosl)}`;
-    
-    const response = await axios.get(url, {
-      headers: { Authorization: `Bearer ${session.accessToken}` }
-    });
-
-    res.json({ articles: response.data.searchRecords || [] });
+    res.json({ articles });
   } catch (error) {
     console.error('Error searching articles:', error.response?.data || error.message);
     // Don't fail hard on knowledge search, just return empty

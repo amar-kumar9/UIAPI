@@ -151,32 +151,31 @@
                                 Knowledge Suggestions
                             </div>
                             <div id="articleList" style="font-size: 13px; color: #666;">
-                                <em>Start typing a subject to see related articles...</em>
+                                <em>Loading articles...</em>
                             </div>
                         </div>
                     </div>
                 </div>
             `;
             document.querySelectorAll('.case-item').forEach(el => el.classList.remove('active'));
+            
+            // Load all articles immediately
+            searchArticles('');
         }
 
         function handleSubjectChange(value) {
             if (searchTimeout) clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => searchArticles(value), 500);
+            // Debounce slightly shorter for better responsiveness
+            searchTimeout = setTimeout(() => searchArticles(value), 300);
         }
 
         async function searchArticles(query) {
             const list = document.getElementById('articleList');
-            
-            if (!query || query.length < 3) {
-                list.innerHTML = '<em>Start typing a subject to see related articles...</em>';
-                return;
-            }
-
-            list.innerHTML = '<em>Searching...</em>';
+            // Don't clear list immediately to avoid flicker, just maybe show a spinner if needed
+            // list.innerHTML = '<em>Searching...</em>'; 
 
             try {
-                const res = await fetch(`/api/cases/articles?q=${encodeURIComponent(query)}`);
+                const res = await fetch(`/api/cases/articles?q=${encodeURIComponent(query || '')}`);
                 const data = await res.json();
                 
                 if (data.articles && data.articles.length > 0) {
