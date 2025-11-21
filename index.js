@@ -40,16 +40,14 @@ const app = express();
 // --------------------------------------
 // Simple mapping from Auth0 user -> Salesforce username
 // --------------------------------------
+const AUTH0_TO_SF_USER_MAP = {
+  'itsamar12@gmail.com': 'edna.frank@aloha.com',
+  'freebooks658@gmail.com': 'ajames@uog.com'
+};
+
 function mapAuth0UserToSalesforceUsername(oidcUser) {
   if (!oidcUser?.email) return null;
-
-  // For now, we hard-code Edna.
-  if (oidcUser.email === 'itsamar12@gmail.com') {
-    return 'edna.frank@aloha.com';
-  }
-
-  // Later you can extend this to multiple users or a lookup table.
-  return null;
+  return AUTH0_TO_SF_USER_MAP[oidcUser.email] || null;
 }
 
 // --------------------------------------

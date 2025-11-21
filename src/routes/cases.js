@@ -7,9 +7,8 @@ const router = express.Router();
 
 function mapAuth0UserToSalesforceUsername(oidcUser) {
   if (!oidcUser?.email) return null;
-  if (oidcUser.email === 'itsamar12@gmail.com') {
-    return 'edna.frank@aloha.com';
-  }
+  if (oidcUser.email === 'itsamar12@gmail.com') return 'edna.frank@aloha.com';
+  if (oidcUser.email === 'freebooks658@gmail.com') return 'ashley.james@aloha.com';
   return null;
 }
 

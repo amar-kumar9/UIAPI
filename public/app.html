@@ -74,7 +74,16 @@
     <script>
         let currentCase = null;
 
+        async function checkAuth() {
+            const res = await fetch('/profile');
+            const data = await res.json();
+            if (!data.loggedIn) {
+                window.location.href = '/login';
+            }
+        }
+
         async function loadCases() {
+            checkAuth();
             const res = await fetch('/api/cases/list');
             const data = await res.json();
             
