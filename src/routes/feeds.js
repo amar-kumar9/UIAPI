@@ -4,12 +4,7 @@ const { postFeedElement } = require('../salesforce/connectApi');
 
 const router = express.Router();
 
-function mapAuth0UserToSalesforceUsername(oidcUser) {
-  if (!oidcUser?.email) return null;
-  if (oidcUser.email === 'itsamar12@gmail.com') return 'edna.frank@aloha.com';
-  if (oidcUser.email === 'freebooks658@gmail.com') return 'ashley.james@aloha.com';
-  return null;
-}
+const { mapAuth0UserToSalesforceUsername } = require('../userMapping');
 
 router.post('/:recordId', async (req, res) => {
   try {

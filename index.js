@@ -37,18 +37,14 @@ if (
 
 const app = express();
 
-// --------------------------------------
-// Simple mapping from Auth0 user -> Salesforce username
-// --------------------------------------
-const AUTH0_TO_SF_USER_MAP = {
-  'itsamar12@gmail.com': 'edna.frank@aloha.com',
-  'freebooks658@gmail.com': 'ajames@uog.com'
-};
+const { mapAuth0UserToSalesforceUsername } = require('./src/userMapping');
+const casesRouter = require('./src/routes/cases');
 
-function mapAuth0UserToSalesforceUsername(oidcUser) {
-  if (!oidcUser?.email) return null;
-  return AUTH0_TO_SF_USER_MAP[oidcUser.email] || null;
-}
+// ... (keep other imports if needed, but I am replacing the block where mapping was defined)
+
+// Mount routers
+app.use('/api/cases', casesRouter);
+
 
 // --------------------------------------
 // Salesforce JWT login helper

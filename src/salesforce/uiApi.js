@@ -18,4 +18,14 @@ async function getRecordsList(session, objectApiName, fields, pageSize = 20) {
   return response.data;
 }
 
-module.exports = { getRecord, getRecordsList };
+async function createRecord(session, apiName, fields) {
+  const url = `${session.instanceUrl}/services/data/v${process.env.SF_API_VERSION}/ui-api/records`;
+  const response = await axios.post(
+    url,
+    { apiName, fields },
+    { headers: { Authorization: `Bearer ${session.accessToken}` } }
+  );
+  return response.data;
+}
+
+module.exports = { getRecord, getRecordsList, createRecord };
