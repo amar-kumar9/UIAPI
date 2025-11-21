@@ -48,6 +48,42 @@
             font-size: 12px;
         }
     </style>
+</head>
+
+<body>
+    <div class="app">
+        <h1>Case Module – Auth0 Login Test</h1>
+
+        <div class="card">
+            <h2>Backend Health</h2>
+            <button class="btn" onclick="checkHealth()">Check /api/health</button>
+            <pre id="healthOutput">Click to test backend...</pre>
+        </div>
+
+        <div class="card">
+            <h2>Case Management App</h2>
+            <p>Go to the main application to manage cases.</p>
+            <a href="/app.html" class="btn" style="text-decoration:none; display:inline-block;">Open Case App</a>
+        </div>
+
+        <div class="card">
+            <h2>Auth0 Login Status</h2>
+            <button class="btn" onclick="goLogin()">Login with IdP</button>
+            <button class="btn" style="margin-left:8px;" onclick="goLogout()">Logout</button>
+            <button class="btn" style="margin-left:8px;" onclick="checkProfile()">Check /profile</button>
+            <pre id="profileOutput">Not checked yet...</pre>
+        </div>
+
+        <div class="card">
+            <h2>Salesforce UI API (as Edna)</h2>
+            <p>Calls Salesforce org-info as the mapped Experience Cloud user.</p>
+            <button class="btn" onclick="callSfOrgInfo()">Call /api/sf/org-info</button>
+            <pre id="sfOrgOutput">Not called yet...</pre>
+        </div>
+    </div>
+
+    <script>
+        async function checkHealth() {
             const res = await fetch('/api/health');
             const data = await res.json();
             document.getElementById('healthOutput').textContent = JSON.stringify(data, null, 2);
