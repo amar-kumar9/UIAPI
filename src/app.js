@@ -10,6 +10,9 @@ const approvalsRouter = require('./routes/approvals');
 
 const app = express();
 
+// Trust proxy is required for Render/Heroku to handle secure cookies correctly
+app.set('trust proxy', 1);
+
 const oidcConfig = {
   authRequired: false,
   auth0Logout: true,
