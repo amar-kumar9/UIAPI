@@ -74,15 +74,25 @@ router.get('/articles', async (req, res) => {
     const session = await getSalesforceSession(sfUsername);
     let articles = [];
 
-    if (q && q.length >= 2) {
+    // Check trimmed length to avoid whitespace-only queries
+    if (q && q.trim().length >= 2) {
       // SOSL Search for specific query
-      const sosl = `FIND {${q}*} IN ALL FIELDS RETURNING Knowledge__kav (Id, Title, Summary, UrlName, ArticleNumber WHERE PublishStatus='Online' AND Language='en_US') LIMIT 10`;
-      const url = `${session.instanceUrl}/services/data/v${process.env.SF_API_VERSION}/search/?q=${encodeURIComponent(sosl)}`;
-      const response = await axios.get(url, { headers: { Authorization: `Bearer ${session.accessToken}` } });
-      articles = response.data.searchRecords || [];
+      // Split query into terms and append wildcard to each for "lexical" (prefix) matching on all words
+      const terms = q.trim().split(/\s+/).filter(t => t.length > 0);
+      
+      if (terms.length > 0) {
+        const searchQuery = terms.map(t => t + '*').join(' AND ');
+        
+        // Removed Language='en_US' to be more inclusive
+        const sosl = `FIND {${searchQuery}} IN ALL FIELDS RETURNING Knowledge__kav (Id, Title, Summary, UrlName, ArticleNumber WHERE PublishStatus='Online') LIMIT 10`;
+        const url = `${session.instanceUrl}/services/data/v${process.env.SF_API_VERSION}/search/?q=${encodeURIComponent(sosl)}`;
+        const response = await axios.get(url, { headers: { Authorization: `Bearer ${session.accessToken}` } });
+        articles = response.data.searchRecords || [];
+      }
     } else {
       // SOQL Query for all/recent articles (Default view)
-      const soql = `SELECT Id, Title, Summary, UrlName, ArticleNumber FROM Knowledge__kav WHERE PublishStatus='Online' AND Language='en_US' ORDER BY LastPublishedDate DESC LIMIT 20`;
+      // Removed Language='en_US' to be more inclusive
+      const soql = `SELECT Id, Title, Summary, UrlName, ArticleNumber FROM Knowledge__kav WHERE PublishStatus='Online' ORDER BY LastPublishedDate DESC LIMIT 20`;
       const url = `${session.instanceUrl}/services/data/v${process.env.SF_API_VERSION}/query/?q=${encodeURIComponent(soql)}`;
       const response = await axios.get(url, { headers: { Authorization: `Bearer ${session.accessToken}` } });
       articles = response.data.records || [];
