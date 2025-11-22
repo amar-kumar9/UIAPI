@@ -1,5 +1,5 @@
 const express = require('express');
-const { getRecord, getRecordsList } = require('../salesforce/uiApi');
+const { getRecord, getRecordsList, createRecord } = require('../salesforce/uiApi');
 const { getFeedElements, getApprovals } = require('../salesforce/connectApi');
 const { requireAuth } = require('../middleware/auth');
 
@@ -12,6 +12,22 @@ router.get('/list', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Error fetching cases:', error.response?.data || error.message);
     res.status(500).json({ error: 'Failed to fetch cases', detail: error.response?.data || error.message });
+  }
+});
+
+router.post('/', requireAuth, async (req, res) => {
+  try {
+    const { Subject, Description, Status, Priority } = req.body;
+    const newCase = await createRecord(req.sfSession, 'Case', {
+      Subject: { value: Subject },
+      Description: { value: Description },
+      Status: { value: Status || 'New' },
+      Priority: { value: Priority || 'Medium' }
+    });
+    res.json({ success: true, case: newCase });
+  } catch (error) {
+    console.error('Error creating case:', error.response?.data || error.message);
+    res.status(500).json({ error: 'Failed to create case', detail: error.response?.data || error.message });
   }
 });
 

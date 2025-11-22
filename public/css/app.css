@@ -3,7 +3,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 
 .header { background: #0176d3; color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
 .header h1 { font-size: 18px; font-weight: 500; }
+.header-actions { display: flex; gap: 10px; align-items: center; }
 .header button { background: white; color: #0176d3; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
+.btn-primary { background: white; color: #0176d3; font-weight: 500; }
+.btn-primary:hover { background: #e8f4ff; }
 
 .container { display: flex; height: calc(100vh - 48px); }
 
@@ -39,7 +42,33 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
 .btn-approve { background: #2e844a; color: white; }
 .btn-reject { background: #c23934; color: white; }
+.btn-secondary { background: #e5e5e5; color: #3e3e3c; }
+.btn-secondary:hover { background: #d3d3d3; }
 
 .field-row { display: grid; grid-template-columns: 150px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f3f3f3; }
 .field-label { font-weight: 600; font-size: 13px; color: #706e6b; }
 .field-value { font-size: 13px; }
+
+/* Modal Styles */
+.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); }
+.modal.show { display: flex; align-items: center; justify-content: center; }
+.modal-content { background-color: white; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); width: 90%; max-width: 500px; }
+.modal-header { padding: 20px; border-bottom: 1px solid #e5e5e5; display: flex; justify-content: space-between; align-items: center; }
+.modal-header h2 { font-size: 18px; font-weight: 600; }
+.close { font-size: 28px; font-weight: bold; cursor: pointer; color: #706e6b; }
+.close:hover { color: #3e3e3c; }
+.modal-body { padding: 20px; max-height: 400px; overflow-y: auto; }
+.modal-footer { padding: 20px; border-top: 1px solid #e5e5e5; display: flex; justify-content: flex-end; gap: 10px; }
+
+/* Form Styles */
+.form-group { margin-bottom: 16px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-group label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 13px; color: #3e3e3c; }
+.form-group input,
+.form-group textarea,
+.form-group select { width: 100%; padding: 8px 12px; border: 1px solid #d3d3d3; border-radius: 4px; font-size: 13px; font-family: inherit; }
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus { outline: none; border-color: #0176d3; box-shadow: 0 0 0 3px rgba(1, 118, 211, 0.1); }
+.form-group textarea { resize: vertical; }
+

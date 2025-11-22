@@ -112,6 +112,49 @@ async function processApproval(approvalId, action) {
     loadCase(currentCase.case.id);
 }
 
+function openCreateCaseModal() {
+    document.getElementById('createCaseModal').classList.add('show');
+}
+
+function closeCreateCaseModal() {
+    document.getElementById('createCaseModal').classList.remove('show');
+    document.getElementById('createCaseForm').reset();
+}
+
+async function submitCreateCase() {
+    const form = document.getElementById('createCaseForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+    
+    try {
+        const res = await fetch('/api/cases', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        if (res.ok) {
+            alert('Case created successfully!');
+            closeCreateCaseModal();
+            loadCases();
+        } else {
+            const error = await res.json();
+            alert(`Error: ${error.error}`);
+        }
+    } catch (error) {
+        console.error('Error creating case:', error);
+        alert('Failed to create case');
+    }
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('createCaseModal');
+    if (event.target == modal) {
+        closeCreateCaseModal();
+    }
+}
+
 function logout() {
     window.location.href = '/logout';
 }

@@ -9,7 +9,10 @@
 <body>
     <div class="header">
         <h1>Case Management Console</h1>
-        <button onclick="logout()">Logout</button>
+        <div class="header-actions">
+            <button onclick="openCreateCaseModal()" class="btn-primary">+ Create Case</button>
+            <button onclick="logout()">Logout</button>
+        </div>
     </div>
     
     <div class="container">
@@ -21,6 +24,52 @@
         <div class="main">
             <div id="caseDetail" class="empty-state">
                 Select a case to view details
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Case Modal -->
+    <div id="createCaseModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create New Case</h2>
+                <span class="close" onclick="closeCreateCaseModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="createCaseForm">
+                    <div class="form-group">
+                        <label for="caseSubject">Subject *</label>
+                        <input type="text" id="caseSubject" name="Subject" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="caseDescription">Description</label>
+                        <textarea id="caseDescription" name="Description" rows="4"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="caseStatus">Status</label>
+                            <select id="caseStatus" name="Status">
+                                <option value="New">New</option>
+                                <option value="Working">Working</option>
+                                <option value="Escalated">Escalated</option>
+                                <option value="Closed">Closed</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="casePriority">Priority</label>
+                            <select id="casePriority" name="Priority">
+                                <option value="Low">Low</option>
+                                <option value="Medium" selected>Medium</option>
+                                <option value="High">High</option>
+                                <option value="Critical">Critical</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeCreateCaseModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="submitCreateCase()">Create Case</button>
             </div>
         </div>
     </div>
