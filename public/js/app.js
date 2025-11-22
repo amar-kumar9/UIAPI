@@ -58,6 +58,9 @@ function renderCaseDetail(data) {
             </div>
         </div>
     `;
+
+    // Populate knowledge sidebar based on case subject
+    populateKnowledgeSidebar(data.case.fields.Subject.value);
 }
 
 function renderDetailsTab(caseData) {
@@ -153,6 +156,36 @@ window.onclick = function(event) {
     if (event.target == modal) {
         closeCreateCaseModal();
     }
+}
+
+function populateKnowledgeSidebar(caseSubject) {
+    const knowledgeContent = document.getElementById('knowledgeContent');
+    
+    // Show loading state
+    knowledgeContent.innerHTML = '<p class="knowledge-placeholder">Loading knowledge articles...</p>';
+    
+    // Fetch knowledge articles from the server
+    fetch(`/api/cases/knowledge/search?q=${encodeURIComponent(caseSubject)}`)
+        .then(res => res.json())
+        .then(data => {
+            const articles = data.articles || [];
+            
+            if (articles.length === 0) {
+                knowledgeContent.innerHTML = '<p class="knowledge-placeholder">No knowledge articles found for this case</p>';
+            } else {
+                knowledgeContent.innerHTML = articles.map(article => `
+                    <div class="knowledge-item">
+                        <div class="knowledge-item-title">${article.title}</div>
+                        <div class="knowledge-item-text">${article.summary}</div>
+                        <span class="knowledge-item-type">${article.type}</span>
+                    </div>
+                `).join('');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading knowledge articles:', error);
+            knowledgeContent.innerHTML = '<p class="knowledge-placeholder">Error loading knowledge articles</p>';
+        });
 }
 
 function logout() {

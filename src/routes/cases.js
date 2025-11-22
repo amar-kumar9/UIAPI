@@ -1,5 +1,5 @@
 const express = require('express');
-const { getRecord, getRecordsList, createRecord } = require('../salesforce/uiApi');
+const { getRecord, getRecordsList, createRecord, searchKnowledgeArticles } = require('../salesforce/uiApi');
 const { getFeedElements, getApprovals } = require('../salesforce/connectApi');
 const { requireAuth } = require('../middleware/auth');
 
@@ -28,6 +28,21 @@ router.post('/', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Error creating case:', error.response?.data || error.message);
     res.status(500).json({ error: 'Failed to create case', detail: error.response?.data || error.message });
+  }
+});
+
+router.get('/knowledge/search', requireAuth, async (req, res) => {
+  try {
+    const searchTerm = req.query.q || '';
+    if (!searchTerm.trim()) {
+      return res.json({ articles: [] });
+    }
+    
+    const articles = await searchKnowledgeArticles(req.sfSession, searchTerm, 10);
+    res.json({ articles });
+  } catch (error) {
+    console.error('Error searching knowledge articles:', error.message);
+    res.status(500).json({ error: 'Failed to search knowledge articles', detail: error.message });
   }
 });
 

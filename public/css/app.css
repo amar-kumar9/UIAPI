@@ -72,3 +72,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .form-group select:focus { outline: none; border-color: #0176d3; box-shadow: 0 0 0 3px rgba(1, 118, 211, 0.1); }
 .form-group textarea { resize: vertical; }
 
+/* Knowledge Sidebar Styles */
+.knowledge-sidebar { width: 300px; background: white; border-left: 1px solid #e5e5e5; overflow-y: auto; display: flex; flex-direction: column; }
+.knowledge-header { padding: 16px; border-bottom: 1px solid #e5e5e5; font-weight: 600; }
+.knowledge-header h3 { font-size: 14px; color: #3e3e3c; }
+.knowledge-content { flex: 1; padding: 16px; overflow-y: auto; }
+.knowledge-placeholder { color: #706e6b; font-size: 13px; text-align: center; padding: 20px 10px; }
+.knowledge-item { padding: 12px; background: #f9f9f9; border-radius: 4px; margin-bottom: 12px; border-left: 3px solid #0176d3; }
+.knowledge-item-title { font-weight: 600; font-size: 13px; color: #0176d3; margin-bottom: 4px; cursor: pointer; }
+.knowledge-item-title:hover { text-decoration: underline; }
+.knowledge-item-text { font-size: 12px; color: #706e6b; line-height: 1.4; }
+.knowledge-item-type { display: inline-block; background: #e8f4ff; color: #0176d3; padding: 2px 8px; border-radius: 2px; font-size: 11px; margin-top: 8px; font-weight: 500; }

@@ -26,17 +26,15 @@ app.use(cors());
 app.use(express.json());
 app.use(auth(oidcConfig));
 
-// Debug middleware to check auth state
+// Middleware to ensure req.oidc is available for all routes
 app.use((req, res, next) => {
-  console.log(`[${req.method}] ${req.path} - req.oidc exists: ${!!req.oidc}`);
-  if (req.oidc) {
-    console.log(`Is Authenticated: ${req.oidc.isAuthenticated()}`);
-  } else {
-    console.error('CRITICAL: req.oidc is undefined!');
+  if (!req.oidc) {
+    console.error('CRITICAL: req.oidc is undefined! OIDC middleware may not be initialized.');
   }
   next();
 });
 
+// Serve static files AFTER auth middleware
 app.use(express.static(path.join(__dirname, '../public')));
 
 app.get('/profile', (req, res) => {
