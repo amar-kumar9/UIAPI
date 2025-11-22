@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.get('/list', async (req, res) => {
   try {
-    if (!req.oidc.isAuthenticated()) {
+    if (!req.oidc || !req.oidc.isAuthenticated()) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
@@ -30,7 +30,7 @@ router.get('/list', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    if (!req.oidc.isAuthenticated()) {
+    if (!req.oidc || !req.oidc.isAuthenticated()) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
@@ -61,7 +61,7 @@ router.post('/', async (req, res) => {
 
 router.get('/articles', async (req, res) => {
   try {
-    if (!req.oidc.isAuthenticated()) {
+    if (!req.oidc || !req.oidc.isAuthenticated()) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
@@ -115,7 +115,7 @@ router.get('/articles', async (req, res) => {
 
 router.get('/:caseId', async (req, res) => {
   try {
-    if (!req.oidc.isAuthenticated()) {
+    if (!req.oidc || !req.oidc.isAuthenticated()) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
