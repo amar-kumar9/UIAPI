@@ -77,14 +77,19 @@ router.get('/articles', async (req, res) => {
     // Check trimmed length to avoid whitespace-only queries
     if (q && q.trim().length >= 2) {
       // SOSL Search for specific query
+      // Escape special SOSL characters to prevent injection and syntax errors
+      const sanitizedQ = q.replace(/[?&|!{}[\]()^~*:\\"'+-]/g, '\\$&');
+      
       // Split query into terms and append wildcard to each for "lexical" (prefix) matching on all words
-      const terms = q.trim().split(/\s+/).filter(t => t.length > 0);
+      const terms = sanitizedQ.trim().split(/\s+/).filter(t => t.length > 0);
       
       if (terms.length > 0) {
         const searchQuery = terms.map(t => t + '*').join(' AND ');
         
         // Removed Language='en_US' to be more inclusive
         const sosl = `FIND {${searchQuery}} IN ALL FIELDS RETURNING Knowledge__kav (Id, Title, Summary, UrlName, ArticleNumber WHERE PublishStatus='Online') LIMIT 10`;
+        console.log('Executing SOSL:', sosl); // Debug log
+        
         const url = `${session.instanceUrl}/services/data/v${process.env.SF_API_VERSION}/search/?q=${encodeURIComponent(sosl)}`;
         const response = await axios.get(url, { headers: { Authorization: `Bearer ${session.accessToken}` } });
         articles = response.data.searchRecords || [];
@@ -93,6 +98,8 @@ router.get('/articles', async (req, res) => {
       // SOQL Query for all/recent articles (Default view)
       // Removed Language='en_US' to be more inclusive
       const soql = `SELECT Id, Title, Summary, UrlName, ArticleNumber FROM Knowledge__kav WHERE PublishStatus='Online' ORDER BY LastPublishedDate DESC LIMIT 20`;
+      console.log('Executing SOQL:', soql); // Debug log
+      
       const url = `${session.instanceUrl}/services/data/v${process.env.SF_API_VERSION}/query/?q=${encodeURIComponent(soql)}`;
       const response = await axios.get(url, { headers: { Authorization: `Bearer ${session.accessToken}` } });
       articles = response.data.records || [];
